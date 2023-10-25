@@ -4,9 +4,9 @@ const Content = (props) => {
     console.log(props)
     return (
         <div>
-            <Part name={props.part1} mark={props.exercises1}/>
-            <Part name={props.part2} mark={props.exercises2}/>
-            <Part name={props.part3} mark={props.exercises3}/>
+            <Part name={props.parts[0].name} mark={props.parts[0].exercises}/>
+            <Part name={props.parts[1].name} mark={props.parts[1].exercises}/>
+            <Part name={props.parts[2].name} mark={props.parts[2].exercises}/>
         </div>
     )
 }
