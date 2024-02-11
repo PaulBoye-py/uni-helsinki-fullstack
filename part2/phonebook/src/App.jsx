@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
+import personService from './services/persons'
 import axios from "axios"
 
 
@@ -11,15 +12,15 @@ const App = () => {
    const [newNumber, setNewNumber] = useState('')
    const [nameSearch, setNameSearch] = useState('')
 
-   const getPersonsHook = () => {
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        setPersons(response.data)
-      })
-   }
 
-   useEffect(getPersonsHook, [])
+  // Get all Contacts
+  useEffect(() => {
+    personService
+      .getAllPersons()
+      .then(initialPersons => {
+        setPersons(initialPersons)
+      })
+  }, [])
 
   // Handle Input Changes
    const handleNewNameChange = (e) => {
@@ -45,9 +46,26 @@ const App = () => {
     e.preventDefault();
     const newPerson = {name: newName, 
                       number: newNumber, 
-                      id: Math.max(...persons.map(person => person.id), 0) + 1}
-    if (persons.some(person => person.name === newName )) {
-      alert(`${newName} is already added to the phonebook`)
+                      id: String(Math.max(...persons.map(person => person.id), 0) + 1)
+    }
+
+    // Check if the Person's name already exists 
+    if (persons.some(person => person.name === newName && person.number !== newNumber) ) {
+      const confirmUpdate = window.confirm(`${newName} is already added to phonebook. Replace the old number with a new one?`)
+      // alert(`${newName} is already added to the phonebook`)
+      if (confirmUpdate) {
+        const existingPerson = persons.find(person => person.name === newName)
+        if (existingPerson) {
+          const updatedPerson = {
+            ...existingPerson, 
+            number: newNumber,
+          }
+          console.log(updatedPerson)
+          updatePerson(updatedPerson.id)
+        }
+    
+        
+      }
       return;
     }
 
@@ -60,11 +78,60 @@ const App = () => {
       alert("Phone number cannot be empty!")
       return
     }
-    setPersons([...persons, newPerson])
-    setNewName("")
-    setNewNumber("")
-    console.log("Added")
-   }
+
+    // Add new Persons to DB
+    personService
+      .addPerson(newPerson)
+      .then(returnedPerson => {
+        setPersons([...persons, returnedPerson])
+        setNewName("")
+        setNewNumber("")
+        console.log("Added")
+      })
+
+      .catch(error => {
+        console.log(error)
+      })
+  }
+
+  //  Handle Delete
+  const handleDelete = (id) => {
+    const person = persons.find(n => n.id === id)
+
+    if (!person) {
+      console.error(`Person with id ${id} not found.`)
+      return;
+    }
+
+    const confirmDelete = window.confirm(`Delete ${person.name}?`)
+
+    if (confirmDelete) {
+      personService
+      .deletePerson(person.id)
+      .then(() => {
+        setPersons(prevPersons => prevPersons.filter(p => p.id !== person.id));
+      })
+      .catch(error => {
+        console.log(error)
+      })
+    }
+  }
+
+  // Update Phone Number
+    const updatePerson = id => {
+      const person = persons.find(n => n.id === id)
+      const changedPerson = {...person, number : newNumber}
+      console.log(changedPerson)
+
+      personService
+        .updatePerson(id, changedPerson)
+        .then(returnedPerson => {
+        setPersons(persons.map(person => person.id !== id ? person : returnedPerson))
+        })
+  }
+
+ 
+
 
    return (
     <div>
@@ -82,7 +149,7 @@ const App = () => {
         />
       <h2>Numbers</h2>
 
-        <Persons Persons={searchFilter}/>
+        <Persons Persons={searchFilter} handleDelete={handleDelete}/>
     </div>
    )
 }

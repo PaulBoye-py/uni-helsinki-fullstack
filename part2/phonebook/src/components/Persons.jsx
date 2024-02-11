@@ -4,10 +4,14 @@ const Persons = (props) => {
     // console.log(props)
   return (
     <div>
-         {props.Persons.map((person) => (
-        <p key={person.id}>{person.name} {person.number}</p>
-        ))}
+      {props.Persons.map((person) => (
+        <div key={person.id}>
+          <p>{person.name} {person.number} <button onClick={() => props.handleDelete(person.id)}>delete</button></p>  
+        </div>
+       ))}
     </div>
+   
+
   )
 }
 
