@@ -5,8 +5,11 @@ function CountryDetails({ country }) {
     const [wind, setWind] = useState("")
     const [icon, setIcon] = useState("")
 
+    const apiKey = import.meta.env.VITE_OPEN_WEATHER_API_KEY
+
+
     useEffect(() => {
-        axios.get(`https://api.openweathermap.org/data/2.5/weather?lat=${country.latlng[0]}&lon=${country.latlng[1]}&appid=e49d0654791322f21a3c3bad191c65fe`)
+        axios.get(`https://api.openweathermap.org/data/2.5/weather?lat=${country.latlng[0]}&lon=${country.latlng[1]}&appid=${apiKey}`)
             .then((response) => {
                 console.log(response)
                 setWeather(response.data.main.temp)
