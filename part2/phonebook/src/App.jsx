@@ -4,6 +4,7 @@ import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
 import personService from './services/persons'
 import axios from "axios"
+import Notification from './components/Notification'
 
 
 const App = () => {
@@ -11,6 +12,10 @@ const App = () => {
    const [newName, setNewName] = useState('')
    const [newNumber, setNewNumber] = useState('')
    const [nameSearch, setNameSearch] = useState('')
+   const [message, setMessage] = useState({
+    initial: null,
+    bool: true,
+   })
 
 
   // Get all Contacts
@@ -86,6 +91,10 @@ const App = () => {
         setPersons([...persons, returnedPerson])
         setNewName("")
         setNewNumber("")
+        setMessage({initial: `Added ${newPerson.name}`, bool: true})
+        setTimeout(() => {
+          setMessage(null)
+        }, 5000)
         console.log("Added")
       })
 
@@ -110,6 +119,10 @@ const App = () => {
       .deletePerson(person.id)
       .then(() => {
         setPersons(prevPersons => prevPersons.filter(p => p.id !== person.id));
+        setMessage({initial: `Information of ${person.name} has been removed from the server.`, bool:false})
+        setTimeout(() => {
+          setMessage(null)
+        }, 5000)
       })
       .catch(error => {
         console.log(error)
@@ -128,6 +141,14 @@ const App = () => {
         .then(returnedPerson => {
         setPersons(persons.map(person => person.id !== id ? person : returnedPerson))
         })
+        .catch(error => {
+          setMessage({initial: `Information of ${changedPerson.name} has already been removed from the server.`, bool:false})
+          setTimeout(() => {
+            setMessage(null)
+          }, 5000)
+          setPersons(persons.filter(n => n.id !== id))
+          console.log(error)
+        })
   }
 
  
@@ -136,6 +157,7 @@ const App = () => {
    return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={message}/>
       <Filter nameSearch={nameSearch} handleNameSearch={handleNameSearch}/>
 
       <h1>add a new</h1>

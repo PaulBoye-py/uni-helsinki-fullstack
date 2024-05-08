@@ -1,7 +1,7 @@
 import React from 'react'
 
 const PersonForm = (props) => {
-    // console.log(props)
+    console.log(props)
   return (
     <div>
         <form onSubmit={props.handleSubmit}> 
