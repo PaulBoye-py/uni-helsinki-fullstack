@@ -51,7 +51,7 @@ const App = () => {
     e.preventDefault();
     const newPerson = {name: newName, 
                       number: newNumber, 
-                      id: String(Math.max(...persons.map(person => person.id), 0) + 1)
+                      // id: String(Math.max(...persons.map(person => person.id), 0) + 1)
     }
 
     // Check if the Person's name already exists 
@@ -60,18 +60,21 @@ const App = () => {
       // alert(`${newName} is already added to the phonebook`)
       if (confirmUpdate) {
         const existingPerson = persons.find(person => person.name === newName)
+        console.log(existingPerson)
         if (existingPerson) {
           const updatedPerson = {
             ...existingPerson, 
             number: newNumber,
           }
+          // alert(`${newName} updated!`)
           console.log(updatedPerson)
-          updatePerson(updatedPerson.id)
+          updatePerson(updatedPerson.id, updatedPerson)
         }
-    
-        
+        return    
+      } else {
+        alert(`${newName} is already added to the phonebook with the same number.`);
+        return;
       }
-      return;
     }
 
     if(newName === "") {
@@ -106,6 +109,7 @@ const App = () => {
   //  Handle Delete
   const handleDelete = (id) => {
     const person = persons.find(n => n.id === id)
+    console.log(person)
 
     if (!person) {
       console.error(`Person with id ${id} not found.`)
@@ -118,38 +122,62 @@ const App = () => {
       personService
       .deletePerson(person.id)
       .then(() => {
-        setPersons(prevPersons => prevPersons.filter(p => p.id !== person.id));
+        setPersons( prevPersons => prevPersons.filter(p => p.id !== person.id));
         setMessage({initial: `Information of ${person.name} has been removed from the server.`, bool:false})
         setTimeout(() => {
           setMessage(null)
         }, 5000)
       })
       .catch(error => {
+        setMessage({ initial: `Information of ${person.name} has already been removed from the server.`, bool: true });
+        setPersons(prevPersons => prevPersons.filter(p => p.id !== person.id)); // Update state in case of failure
+        setTimeout(() => {
+          setMessage(null);
+        }, 5000);
         console.log(error)
       })
     }
   }
 
-  // Update Phone Number
-    const updatePerson = id => {
-      const person = persons.find(n => n.id === id)
-      const changedPerson = {...person, number : newNumber}
-      console.log(changedPerson)
 
-      personService
-        .updatePerson(id, changedPerson)
+  //   const updatePerson = id => {
+  //     const person = persons.find(n => n.id === id)
+  //     const changedPerson = {...person, number : newNumber}
+  //     console.log(changedPerson)
+
+  //     personService
+  //       .updatePerson(id, changedPerson)
+  //       .then(returnedPerson => {
+  //       setPersons(persons.map(person => person.id !== id ? person : returnedPerson))
+  //       })
+  //       .catch(error => {
+  //         setMessage({initial: `Information of ${changedPerson.name} has already been removed from the server.`, bool:false})
+  //         setTimeout(() => {
+  //           setMessage(null)
+  //         }, 5000)
+  //         setPersons(persons.filter(n => n.id !== id))
+  //         console.log(error)
+  //       })
+  // }
+
+    // Update Phone Number
+
+  const updatePerson = (id, updatedPerson) => {
+    personService.updatePerson(id, updatedPerson)
         .then(returnedPerson => {
-        setPersons(persons.map(person => person.id !== id ? person : returnedPerson))
+            setPersons(persons.map(person => person.id !== id ? person : returnedPerson));
+            setNewName("");
+            setNewNumber("");
+            setMessage({initial: `Updated ${updatedPerson.name}`, bool: true});
+            setTimeout(() => setMessage(null), 5000);
         })
         .catch(error => {
-          setMessage({initial: `Information of ${changedPerson.name} has already been removed from the server.`, bool:false})
-          setTimeout(() => {
-            setMessage(null)
-          }, 5000)
-          setPersons(persons.filter(n => n.id !== id))
-          console.log(error)
-        })
-  }
+            setMessage({initial: `Information of ${updatedPerson.name} has already been removed from the server.`, bool: false});
+            setPersons(persons.filter(n => n.id !== id));
+            setTimeout(() => setMessage(null), 5000);
+            console.log(error);
+        });
+};
 
  
 
